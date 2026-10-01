@@ -16,7 +16,7 @@ import {
   formatDuration,
 } from "@/lib/services";
 import { SlotAvailability, formatDateKey, timeStringToMinutes } from "@/lib/availability";
-import { getCalculatedAvailability, bookAgapeAppointment, getPublicServices, getStudioSettings } from "../actions";
+import { getCalculatedAvailability, bookAgapeAppointment, getPublicServices, getStudioSettings, getPublicExtras } from "../actions";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -44,6 +44,7 @@ function BookContent() {
     : [];
 
   const [servicesList, setServicesList] = useState<Service[]>(SERVICIOS_AGAPE);
+  const [extrasList, setExtrasList] = useState<Extra[]>(EXTRAS_AGAPE);
   const [selectedService, setSelectedService] = useState<Service>(() => {
     return (
       SERVICIOS_AGAPE.find((s) => s.id === initialServiceId) ||
@@ -54,13 +55,20 @@ function BookContent() {
 
   useEffect(() => {
     getPublicServices().then((list) => {
-      if (list && list.length > 0) {
+      if (list) {
         setServicesList(list as Service[]);
         const paramId = searchParams.get("service");
         const found = list.find((s) => s.id === paramId);
         if (found) {
           setSelectedService(found as Service);
+        } else if (list.length > 0) {
+          setSelectedService(list[0] as Service);
         }
+      }
+    });
+    getPublicExtras().then((list) => {
+      if (list) {
+        setExtrasList(list as Extra[]);
       }
     });
   }, [searchParams]);
@@ -103,7 +111,7 @@ function BookContent() {
   }, []);
 
   // Extras seleccionados
-  const selectedExtras = EXTRAS_AGAPE.filter((e) =>
+  const selectedExtras = extrasList.filter((e) =>
     selectedExtraIds.includes(e.id)
   );
   const totalDuration = calculateTotalDuration(selectedService, selectedExtras);
@@ -197,7 +205,7 @@ function BookContent() {
               clientName: name.trim(),
               clientPhone: phone.trim(),
               serviceName: selectedService.nombre,
-              extraNames: EXTRAS_AGAPE.filter((e) => selectedExtraIds.includes(e.id)).map((e) => e.nombre),
+              extraNames: extrasList.filter((e) => selectedExtraIds.includes(e.id)).map((e) => e.nombre),
               date: dateKey,
               startTime: selectedSlot.time,
               endTime: `${endH}:${endM}`,
@@ -313,7 +321,7 @@ function BookContent() {
                 Extras y Diseños (opcional)
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {EXTRAS_AGAPE.map((extra) => {
+                {extrasList.map((extra) => {
                   const isChecked = selectedExtraIds.includes(extra.id);
                   return (
                     <div

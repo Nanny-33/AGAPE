@@ -19,6 +19,7 @@ import {
 import { SERVICIOS_AGAPE, EXTRAS_AGAPE } from "@/lib/services";
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
+import { unstable_noStore as noStore } from "next/cache";
 
 const prisma = new PrismaClient();
 
@@ -162,7 +163,11 @@ export async function bookAgapeAppointment(data: {
     }
 
     // 2. Buscar extras
-    const extras = EXTRAS_AGAPE.filter((e) => data.extraIds.includes(e.id));
+    let allExtras: any[] = await prisma.dynamicExtra.findMany();
+    if (!allExtras || allExtras.length === 0) {
+      allExtras = EXTRAS_AGAPE as any[];
+    }
+    const extras = allExtras.filter((e) => data.extraIds.includes(e.id));
     const extrasDuration = extras.reduce((acc, curr) => acc + curr.duracion, 0);
     const extrasPrice = extras.reduce((acc, curr) => acc + curr.precio, 0);
 
@@ -377,16 +382,14 @@ export async function updateStudioSettings(data: {
   }
 }
 
-/**
- * Obtiene los servicios activos de la base de datos para la vista del cliente
- */
 export async function getPublicServices() {
+  noStore();
   try {
-    const services = await prisma.dynamicService.findMany({
-      where: { activo: true },
-    });
-    if (services && services.length > 0) {
-      return services;
+    const totalCount = await prisma.dynamicService.count();
+    if (totalCount > 0) {
+      return await prisma.dynamicService.findMany({
+        where: { activo: true },
+      });
     }
     return SERVICIOS_AGAPE.filter((s) => s.activo);
   } catch (error) {
@@ -433,12 +436,13 @@ export async function deleteGalleryImage(id: string) {
 
 
 export async function getPublicExtras() {
+  noStore();
   try {
-    const extras = await prisma.dynamicExtra.findMany({
-      where: { activo: true },
-    });
-    if (extras && extras.length > 0) {
-      return extras;
+    const totalCount = await prisma.dynamicExtra.count();
+    if (totalCount > 0) {
+      return await prisma.dynamicExtra.findMany({
+        where: { activo: true },
+      });
     }
     return EXTRAS_AGAPE.filter((s) => s.activo);
   } catch (error) {

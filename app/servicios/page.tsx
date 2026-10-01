@@ -35,13 +35,15 @@ export default function ServiciosPage() {
 
   useEffect(() => {
     getPublicServices().then((list) => {
-      if (list && list.length > 0) {
+      if (list) {
         setServices(list as Service[]);
-        setSelectedService(list[0] as Service);
+        if (list.length > 0) {
+          setSelectedService(list[0] as Service);
+        }
       }
     });
     getPublicExtras().then((list) => {
-      if (list && list.length > 0) {
+      if (list) {
         setExtras(list as Extra[]);
       }
     });

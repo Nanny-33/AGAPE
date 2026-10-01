@@ -517,6 +517,8 @@ export async function toggleServiceStatus(id: string): Promise<{ success: boolea
       });
       revalidatePath("/admin/services");
       revalidatePath("/servicios");
+      revalidatePath("/book");
+      revalidatePath("/");
       return { success: true };
     }
     return { success: false, error: "Servicio no encontrado" };
@@ -1131,6 +1133,8 @@ export async function toggleExtraStatus(id: string) {
       });
       revalidatePath("/admin/services");
       revalidatePath("/servicios");
+      revalidatePath("/book");
+      revalidatePath("/");
       return { success: true };
     }
     return { success: false };
